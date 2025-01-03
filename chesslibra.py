@@ -59,6 +59,65 @@ class Board:
         self.whomove = whomove
         self.captured = captured
 
+    def isChecked(self):
+        def is_attacked(x, y, attacker_color):
+            directions = [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (1, 1), (-1, 1), (1, -1)]
+            knight_moves = [(-2, -1), (-1, -2), (1, -2), (2, -1), (2, 1), (1, 2), (-1, 2), (-2, 1)]
+
+            # Check for pawn attacks
+            if attacker_color == "White":
+                pawn_directions = [(1, -1), (1, 1)]
+            else:
+                pawn_directions = [(-1, -1), (-1, 1)]
+
+            for dx, dy in pawn_directions:
+                if 0 <= x + dx < 8 and 0 <= y + dy < 8:
+                    piece = self.board[x + dx][y + dy]
+                    if piece and piece.color == attacker_color and piece.Pawn():
+                        return True
+
+            # Check for rook, bishop, and queen attacks
+            for dx, dy in directions:
+                step = 1
+                while 0 <= x + step * dx < 8 and 0 <= y + step * dy < 8:
+                    piece = self.board[x + step * dx][y + step * dy]
+                    if piece:
+                        if piece.color == attacker_color:
+                            if piece.Rook() and (dx == 0 or dy == 0):
+                                return True
+                            if piece.Bishop() and (dx != 0 and dy != 0):
+                                return True
+                            if piece.Queen():
+                                return True
+                        break
+                    step += 1
+
+            # Check for knight attacks
+            for dx, dy in knight_moves:
+                if 0 <= x + dx < 8 and 0 <= y + dy < 8:
+                    piece = self.board[x + dx][y + dy]
+                    if piece and piece.color == attacker_color and piece.Knight():
+                        return True
+
+            # Check for king attacks
+            for dx, dy in directions:
+                if 0 <= x + dx < 8 and 0 <= y + dy < 8:
+                    piece = self.board[x + dx][y + dy]
+                    if piece and piece.color == attacker_color and piece.King():
+                        return True
+
+            return False
+
+        for x in range(8):
+            for y in range(8):
+                piece = self.board[x][y]
+                if piece and piece.King():
+                    if piece.color == "White" and is_attacked(x, y, "Black"):
+                        return
+                    if piece.color == "Black" and is_attacked(x, y, "White"):
+                        return "Black"
+        return None
+
     def __str__(self):
         return f"{self.board}"
 
@@ -69,7 +128,7 @@ class Board:
                 if tox != fromx and toy != fromy:
                     mark = False
             case ChessPiece.Knight(_):
-                if (math.fabs(tox - fromx)!=2 and math.fabs(toy - fromy)!=3) or (math.fabs(tox - fromx)!=3 and math.fabs(toy - fromy)!=2):
+                if (math.fabs(tox - fromx)!=2 and math.fabs(toy - fromy)!=1) or (math.fabs(tox - fromx)!=1 and math.fabs(toy - fromy)!=2):
                     mark = False
             case ChessPiece.Bishop(_):
                 if math.fabs(tox - fromx) != math.fabs(toy - fromy):
@@ -86,7 +145,5 @@ class Board:
         if self.board[tox][toy].color == self.whomove:
             mark=False
         if mark:
-            if self.board[tox][toy].color != self.whomove:
-                self.captured.append(self.board[tox][toy])
             self.board[tox][toy] = self.board[fromx][fromy]
             self.board[fromx][fromy] = None
