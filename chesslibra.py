@@ -9,59 +9,33 @@ class Rook(ChessPiece):
     def __init__(self, color):
         super().__init__(color, "Rook")
 
-    def __str__(self):
-        return f"{self.color} R"
-
 class Knight(ChessPiece):
     def __init__(self, color):
         super().__init__(color, "Knight")
 
-    def __str__(self):
-        return f"{self.color} N"
 
 class Bishop(ChessPiece):
     def __init__(self, color):
         super().__init__(color, "Bishop")
 
-    def __str__(self):
-        return f"{self.color} B"
 
 class Queen(ChessPiece):
     def __init__(self, color):
         super().__init__(color, "Queen")
 
-    def __str__(self):
-        return f"{self.color} Q"
 
 class King(ChessPiece):
     def __init__(self, color):
         super().__init__(color, "King")
 
-    def __str__(self):
-        return f"{self.color} K"
 
 class Pawn(ChessPiece):
     def __init__(self, color):
         super().__init__(color, "Pawn")
 
-    def __str__(self):
-        return f"{self.color} P"
-
-class Side:
-    def __init__(self, color):
-        self.color = color
-
-    def __str__(self):
-        return f"{self.color}"
-
-    def White(self):
-        return self.color == "White"
-
-    def Black(self):
-        return self.color == "Black"
 
 class Board:
-    def __init__(self, board=None, whomove=Side.White, captured=None):
+    def __init__(self, board=None, whomove="White", captured=None):
         if captured is None:
             captured = []
         if board is None:
@@ -141,27 +115,28 @@ class Board:
                         return "Black"
         return None
 
-    def __str__(self):
+    def get(self):
         pr_board = []
-        for i in self.board:
-            for j in i:
+        for i in range(8):
+            pr_board.append(str(8 - i))
+            for j in range(8):
                 piece = ""
-                if j is None:
+                if self.board[i][j] is None:
                     piece = " "
                 else:
-                    match j.type:
+                    match self.board[i][j].type:
                         case "Rook":
-                            piece = "♖" if j.color == "White" else "♜"
+                            piece = "♖" if self.board[i][j].color == "White" else "♜"
                         case "Knight":
-                            piece = "♘" if j.color == "White" else "♞"
+                            piece = "♘" if self.board[i][j].color == "White" else "♞"
                         case "Bishop":
-                            piece = "♗" if j.color == "White" else "♝"
+                            piece = "♗" if self.board[i][j].color == "White" else "♝"
                         case "Queen":
-                            piece = "♕" if j.color == "White" else "♛"
+                            piece = "♕" if self.board[i][j].color == "White" else "♛"
                         case "King":
-                            piece = "♔" if j.color == "White" else "♚"
+                            piece = "♔" if self.board[i][j].color == "White" else "♚"
                         case "Pawn":
-                            piece = "♙" if j.color == "White" else "♟"
+                            piece = "♙" if self.board[i][j].color == "White" else "♟"
                         case None:
                             piece = " "
                 pr_board.append(piece)
@@ -169,6 +144,7 @@ class Board:
         pr_board = "".join(pr_board)
         lines = pr_board.split('\n')
         reversed_lines = lines[::-1]
+        reversed_lines.append(" abcdefgh")
         return '\n'.join(reversed_lines)
 
 
@@ -180,35 +156,35 @@ class Board:
             match self.board[fromx][fromy].type:
                 case "Rook":
                     if tox != fromx and toy != fromy:
-                        mark = False
+                        mark = "Wrong move for rook"
                 case "Knight":
                     if (math.fabs(tox - fromx)!=2 and math.fabs(toy - fromy)!=1) or (math.fabs(tox - fromx)!=1 and math.fabs(toy - fromy)!=2):
-                        mark = False
+                        mark = "Wrong move for knight"
                 case "Bishop":
                     if math.fabs(tox - fromx) != math.fabs(toy - fromy):
-                        mark = False
+                        mark = "Wrong move for bishop"
                 case "Queen":
                     if tox != fromx and toy != fromy and math.fabs(tox - fromx) != math.fabs(toy - fromy):
-                        mark = False
+                        mark = "Wrong move for queen"
                 case "King":
                     if math.fabs(tox - fromx) > 1 or math.fabs(toy - fromy) > 1:
-                        mark = False
+                        mark = "Wrong move for king"
                 case "Pawn":
                     if tox != fromx and toy != fromy:
-                        mark = False
+                        mark = "Wrong move for pawn"
             if self.board[tox][toy] is not None:
                 if self.board[tox][toy].color == self.whomove:
-                    mark=False
+                    mark="Captures your own piece"
             if self.board[fromx][fromy].color != self.whomove:
-                mark = False
-            if mark:
+                mark = "Moves opponent's piece"
+            if mark==True:
                 pre_board = self.board
                 to_ = self.board[tox][toy]
                 self.board[tox][toy] = self.board[fromx][fromy]
                 self.board[fromx][fromy] = None
                 if self.isChecked() == self.whomove:
                     self.board = pre_board
-                    mark = False
+                    mark = "This move puts you in check"
                 if mark:
                     self.whomove = "White" if self.whomove == "Black" else "Black"
                     if to_ is not None:
