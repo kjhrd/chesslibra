@@ -1,13 +1,16 @@
 import math
 
+
 class ChessPiece:
     def __init__(self, color, type):
         self.color = color
         self.type = type
 
+
 class Rook(ChessPiece):
     def __init__(self, color):
         super().__init__(color, "Rook")
+
 
 class Knight(ChessPiece):
     def __init__(self, color):
@@ -118,7 +121,7 @@ class Board:
     def get(self):
         pr_board = []
         for i in range(8):
-            pr_board.append(str(8 - i))
+            pr_board.append(str(i + 1))
             for j in range(8):
                 piece = ""
                 if self.board[i][j] is None:
@@ -144,9 +147,8 @@ class Board:
         pr_board = "".join(pr_board)
         lines = pr_board.split('\n')
         reversed_lines = lines[::-1]
-        reversed_lines.append(" abcdefgh")
+        reversed_lines.append(" 1.23.45.67.8")
         return '\n'.join(reversed_lines)
-
 
     def Move(self, fromx, fromy, tox, toy):
         mark = True
@@ -157,15 +159,59 @@ class Board:
                 case "Rook":
                     if tox != fromx and toy != fromy:
                         mark = "Wrong move for rook"
+                    if fromx == tox:
+                        for y in range(min(fromy, toy) + 1, max(fromy, toy)):
+                            if self.board[fromx][y] is not None and self.board[fromx][y].color == self.board[fromx][
+                                fromy].color:
+                                mark = "Illegal move"
+                                break
+                    elif fromy == toy:
+                        for x in range(min(fromx, tox) + 1, max(fromx, tox)):
+                            if self.board[x][fromy] is not None and self.board[x][fromy].color == self.board[fromx][
+                                fromy].color:
+                                mark = "Illegal move"
+                                break
                 case "Knight":
-                    if (math.fabs(tox - fromx)!=2 and math.fabs(toy - fromy)!=1) or (math.fabs(tox - fromx)!=1 and math.fabs(toy - fromy)!=2):
+                    if (math.fabs(tox - fromx) != 2 and math.fabs(toy - fromy) != 1) or (
+                            math.fabs(tox - fromx) != 1 and math.fabs(toy - fromy) != 2):
                         mark = "Wrong move for knight"
                 case "Bishop":
                     if math.fabs(tox - fromx) != math.fabs(toy - fromy):
                         mark = "Wrong move for bishop"
+                    else:
+                        flag = True
+                        for x in range(fromx + 1, tox):
+                            direction_y = int(math.fabs(toy - fromy) / (toy - fromy))
+                            if self.board[x][fromy + (direction_y * (x - fromx))] is not None:
+                                flag = False
+                                break
+                        if not flag:
+                            mark = "Illegal move"
                 case "Queen":
                     if tox != fromx and toy != fromy and math.fabs(tox - fromx) != math.fabs(toy - fromy):
                         mark = "Wrong move for queen"
+                    else:
+                        if fromx == tox:
+                            for y in range(min(fromy, toy) + 1, max(fromy, toy)):
+                                if self.board[fromx][y] is not None and self.board[fromx][y].color == self.board[fromx][
+                                    fromy].color:
+                                    mark = "Illegal move"
+                                    break
+                        elif fromy == toy:
+                            for x in range(min(fromx, tox) + 1, max(fromx, tox)):
+                                if self.board[x][fromy] is not None and self.board[x][fromy].color == self.board[fromx][
+                                    fromy].color:
+                                    mark = "Illegal move"
+                                    break
+                        else:
+                            flag = True
+                            for x in range(fromx + 1, tox):
+                                direction_y = int(math.fabs(toy - fromy) / (toy - fromy))
+                                if self.board[x][fromy + (direction_y * (x - fromx))] is not None:
+                                    flag = False
+                                    break
+                            if not flag:
+                                mark = "Illegal move"
                 case "King":
                     if math.fabs(tox - fromx) > 1 or math.fabs(toy - fromy) > 1:
                         mark = "Wrong move for king"
@@ -174,10 +220,10 @@ class Board:
                         mark = "Wrong move for pawn"
             if self.board[tox][toy] is not None:
                 if self.board[tox][toy].color == self.whomove:
-                    mark="Captures your own piece"
+                    mark = "Captures your own piece"
             if self.board[fromx][fromy].color != self.whomove:
                 mark = "Moves opponent's piece"
-            if mark==True:
+            if mark == True:
                 pre_board = self.board
                 to_ = self.board[tox][toy]
                 self.board[tox][toy] = self.board[fromx][fromy]
